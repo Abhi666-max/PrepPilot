@@ -117,7 +117,7 @@ app.get("/api/test", (req, res) => {
 
 // Start Server
 const PORT = process.env.PORT || 5000;
-const server = app.listen(PORT, () => {
+const server = app.listen(PORT, "0.0.0.0", () => {
   console.log(`Server connected and running on port ${PORT}`);
   if (process.env.NODE_ENV === "production") {
     console.log("Allowed CORS origins (production):");
