@@ -24,12 +24,12 @@ const addQuestionToSession = async (req, res) => {
   try {
     const { sessionId, questions } = req.body;
     if (!sessionId || !questions || !Array.isArray(questions)) {
-      return res.status(400).json({ message: "Invaild input data" });
+      return res.status(400).json({ success: false, message: "Invalid or missing input data provided" });
     }
     const session = await Session.findById(sessionId);
 
     if (!session) {
-      return res.status(404).json({ message: "Session not found" });
+      return res.status(404).json({ success: false, message: "Requested session could not be found" });
     }
     const createdQuestions = await Question.insertMany(
       questions.map((q) => ({
@@ -43,7 +43,7 @@ const addQuestionToSession = async (req, res) => {
     await session.save();
     res.status(201).json(createdQuestions);
   } catch (error) {
-    res.status(500).json({ message: "Server Error" });
+    res.status(500).json({ success: false, message: "Internal server error occurred", error: error.message });
   }
 };
 
@@ -73,7 +73,7 @@ const togglePinQuestion = async (req, res) => {
 
     res.status(200).json({ success: true, question });
   } catch (error) {
-    res.status(500).json({ message: "Server Error" });
+    res.status(500).json({ success: false, message: "Internal server error occurred", error: error.message });
   }
 };
 
@@ -109,7 +109,7 @@ const updateQuestionNote = async (req, res) => {
 
     res.status(200).json({ success: true, question });
   } catch (error) {
-    res.status(500).json({ message: "Server Error" });
+    res.status(500).json({ success: false, message: "Internal server error occurred", error: error.message });
   }
 };
 
