@@ -87,10 +87,12 @@ const App = () => {
                     </ErrorBoundary>
                   }
                 />
-                <Route
-                  path="/test-error"
-                  element={<BuggyComponent />}
-                />
+                {import.meta.env.DEV && (
+                  <Route
+                    path="/test-error"
+                    element={<BuggyComponent />}
+                  />
+                )}
                 <Route
                   path="/resume-builder/:id"
                   element={
@@ -120,10 +122,12 @@ const App = () => {
                       </PageTransition>
                     }
                   />
-                  <Route
-                    path="/layout-test-error"
-                    element={<BuggyComponent />}
-                  />
+                  {import.meta.env.DEV && (
+                    <Route
+                      path="/layout-test-error"
+                      element={<BuggyComponent />}
+                    />
+                  )}
                   <Route
                     path="/ai-helper"
                     element={
