@@ -45,12 +45,9 @@ const UserSchema = new mongoose.Schema(
         platformPreferences: {
             theme: { type: String, default: "light" },
             notificationsEnabled: { type: Boolean, default: true }
-        }
-        name:{type:String, required:true},
-        email:{type:String, required:true, unique:true},
-        password:{type:String, required:true},
-        profileImageUrl:{type:String, default:null},
-        unlockedAchievements: {type: [String], default: []},
+        },
+        
+        unlockedAchievements: { type: [String], default: [] }
     },
     { timestamps: true }
 );
