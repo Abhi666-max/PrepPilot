@@ -10,6 +10,24 @@ import { UserContext } from "../../context/userContext";
 import uploadImage from "../../utils/uploadimage";
 import { LuArrowRight } from "react-icons/lu";
 
+const passwordChecks = {
+  length: password.length >= 8,
+  uppercase: /[A-Z]/.test(password),
+  lowercase: /[a-z]/.test(password),
+  number: /[0-9]/.test(password),
+  special: /[@$!%*?&]/.test(password),
+};
+
+const strengthScore =
+  Object.values(passwordChecks).filter(Boolean).length;
+
+const passwordStrength =
+  strengthScore <= 2
+    ? "Weak"
+    : strengthScore <= 4
+      ? "Medium"
+      : "Strong";
+
 const SignUp = ({ setCurrentPage }) => {
   const [profilePic, setProfilePic] = useState(null);
   const [fullName, setFullName] = useState("");
@@ -140,6 +158,64 @@ const SignUp = ({ setCurrentPage }) => {
           placeholder="Min 8 characters"
           type="password"
         />
+
+        {password && (
+          <div className="mt-3">
+            {/* Strength Meter */}
+            <div className="flex justify-between text-sm mb-2">
+              <span className="text-gray-400">Password Strength</span>
+              <span
+                className={`font-medium ${passwordStrength === "Weak"
+                    ? "text-red-400"
+                    : passwordStrength === "Medium"
+                      ? "text-yellow-400"
+                      : "text-green-400"
+                  }`}
+              >
+                {passwordStrength}
+              </span>
+            </div>
+
+            <div className="w-full h-2 bg-gray-700 rounded-full overflow-hidden">
+              <div
+                className={`h-full transition-all duration-300 ${passwordStrength === "Weak"
+                    ? "bg-red-500"
+                    : passwordStrength === "Medium"
+                      ? "bg-yellow-500"
+                      : "bg-green-500"
+                  }`}
+                style={{ width: `${strengthScore * 20}%` }}
+              />
+            </div>
+
+            {/* Requirements */}
+            <div className="mt-3 text-sm space-y-1">
+              <p className="text-gray-300 font-medium">
+                Password Requirements
+              </p>
+
+              <div className={passwordChecks.length ? "text-green-400" : "text-gray-400"}>
+                {passwordChecks.length ? "✅" : "❌"} Minimum 8 characters
+              </div>
+
+              <div className={passwordChecks.uppercase ? "text-green-400" : "text-gray-400"}>
+                {passwordChecks.uppercase ? "✅" : "❌"} Uppercase letter
+              </div>
+
+              <div className={passwordChecks.lowercase ? "text-green-400" : "text-gray-400"}>
+                {passwordChecks.lowercase ? "✅" : "❌"} Lowercase letter
+              </div>
+
+              <div className={passwordChecks.number ? "text-green-400" : "text-gray-400"}>
+                {passwordChecks.number ? "✅" : "❌"} Number
+              </div>
+
+              <div className={passwordChecks.special ? "text-green-400" : "text-gray-400"}>
+                {passwordChecks.special ? "✅" : "❌"} Special character
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Error Message */}
         {error && (
