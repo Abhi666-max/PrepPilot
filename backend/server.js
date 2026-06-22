@@ -8,6 +8,7 @@ const connectDB = require("./config/db");
 const {
   generateInterviewQuestions,
   generateConceptExplanation,
+  generateInterviewTips,
 } = require("./controllers/aiController");
 const { protect } = require("./middlewares/authMiddleware");
 // const Question = require("./models/Question");
@@ -118,6 +119,15 @@ app.use(
   protect,
   generateConceptExplanation,
 );
+
+app.use(
+  "/api/ai/generate-tips",
+  sensitiveRouteHeaders,
+  aiLimiter,
+  protect,
+  generateInterviewTips,
+);
+
 app.use("/api/books", generalLimiter, booksRoutes);
 
 //Serve uploads folder
