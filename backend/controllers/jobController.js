@@ -7,6 +7,10 @@ const ADZUNA_API_KEY = process.env.ADZUNA_API_KEY;
 const ADZUNA_COUNTRY = process.env.ADZUNA_COUNTRY || "in";
 const CACHE_TTL_MS   = 24 * 60 * 60 * 1000;
 
+// The Jobs feature is optional: without Adzuna credentials it stays dormant
+// instead of crashing the server or spamming failed API calls.
+const isAdzunaConfigured = () => Boolean(ADZUNA_APP_ID && ADZUNA_API_KEY);
+
 async function fetchFromAdzuna(role, country = ADZUNA_COUNTRY) {
   const url = `https://api.adzuna.com/v1/api/jobs/${country}/search/1`;
   const { data } = await axios.get(url, {
@@ -15,7 +19,6 @@ async function fetchFromAdzuna(role, country = ADZUNA_COUNTRY) {
       app_key:  ADZUNA_API_KEY,
       what:     role,
       results_per_page: 10,
-      content_type: "application/json",
     },
   });
   return (data.results || []).map((j) => ({
@@ -33,6 +36,16 @@ async function fetchFromAdzuna(role, country = ADZUNA_COUNTRY) {
 
 exports.getJobs = async (req, res) => {
   try {
+    if (!isAdzunaConfigured()) {
+      return res.json({
+        jobs: [],
+        role: "",
+        source: "disabled",
+        message:
+          "Job listings are not configured on this server. Set ADZUNA_APP_ID and ADZUNA_API_KEY to enable them.",
+      });
+    }
+
     const userId = req.user._id;
 
     const latestSession = await Session.findOne({ user: userId })
@@ -64,6 +77,7 @@ exports.getJobs = async (req, res) => {
 };
 
 exports.refreshJobCache = async () => {
+  if (!isAdzunaConfigured()) return;
   try {
     const roles = await Session.distinct("role", {
       createdAt: { $gte: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000) },
