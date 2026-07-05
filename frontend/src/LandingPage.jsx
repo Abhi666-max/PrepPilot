@@ -974,7 +974,7 @@ const LandingPage = () => {
         <ul className="space-y-2.5 text-sm">
           <li><a href="/resume-builder" className="hover:text-white transition-colors duration-200">Resume Builder</a></li>
           <li><a href="/notes-books" className="hover:text-white transition-colors duration-200">Books Library</a></li>
-          <li><a href="/project-ideas" className="hover:text-white transition-colors duration-200">Project Ideas</a></li>
+          <li><Link to="/project-ideas" className="hover:text-white transition-colors duration-200">Project Ideas</Link></li>
           <li><a href="/interview-experiences" className="hover:text-white transition-colors duration-200">Experiences</a></li>
         </ul>
       </div>
