@@ -18,6 +18,7 @@ const questionRoutes = require("./routes/questionRoutes");
 const aiRoutes = require("./routes/aiRoutes");
 const resumeRoutes = require("./routes/resumeRoutes");
 const aptitudeQuestionsRoutes = require("./routes/AptitudeQuestions.js");
+const jobRoutes = require("./routes/jobRoutes");
 const { generalLimiter, aiLimiter } = require("./middlewares/rateLimiter");
 const { generalHeaders, sensitiveRouteHeaders } = require("./middlewares/securityHeaders");
 // Remove ES Module import for cors. Use CommonJS require below.
@@ -42,7 +43,7 @@ const allowedOrigins = new Set(originEnvList);
 app.use((req, res, next) => {
   const origin = req.headers.origin;
   const renderPattern =
-    /^https:\/\/(?:interview-prep(?:aration)?-ai|preppilot-backend)-[a-z0-9-]+\.onrender\.com$/;
+    /^https:\/\/(?:interview-prep(?:aration)?-ai|preppilot(?:-backend)?)-[a-z0-9-]+\.onrender\.com$/;
   const localhostPattern =
     /^http:\/\/(localhost|127\.0\.0\.1):(5\d{3}|3\d{3})$/;
   if (
@@ -103,21 +104,26 @@ app.use("/api/user", generalLimiter, userSheetProgressRoutes);
 const achievementRoutes = require("./routes/achievementRoutes");
 app.use("/api/user", generalLimiter, achievementRoutes);
 const booksRoutes = require("./routes/booksRoutes");
-const { required } = require("joi");
+const { validateGenerateInterviewQuestions, validateGenerateConceptExplanation, validateGenerateInterviewTips } = require("./Input_validators/ValidateAi.js");
 app.use("/api/resume", generalLimiter, resumeRoutes);
+
+// AI routes with Zod validation
 app.use(
   "/api/ai/generate-questions",
   sensitiveRouteHeaders,
   aiLimiter,
   protect,
-  generateInterviewQuestions,
+  validateGenerateInterviewQuestions, // Zod validator
+  generateInterviewQuestions          // Controller
 );
+
 app.use(
   "/api/ai/generate-explanation",
   sensitiveRouteHeaders,
   aiLimiter,
   protect,
-  generateConceptExplanation,
+  validateGenerateConceptExplanation, // Zod validator
+  generateConceptExplanation          // Controller
 );
 
 app.use(
@@ -125,10 +131,13 @@ app.use(
   sensitiveRouteHeaders,
   aiLimiter,
   protect,
-  generateInterviewTips,
+  validateGenerateInterviewTips,      // Zod validator
+  generateInterviewTips               // Controller
 );
 
+
 app.use("/api/books", generalLimiter, booksRoutes);
+app.use("/api/jobs", generalLimiter, jobRoutes);
 
 //Serve uploads folder
 app.use("/uploads", express.static(path.join(__dirname, "uploads"), {}));
@@ -139,6 +148,14 @@ app.get("/api/test", (req, res) => {
 });
 
 // Remove duplicate CORS middleware (already set above)
+
+// Daily job cache refresh — warm on boot, then every 24 hours.
+// Only runs when Adzuna is configured; otherwise refreshJobCache() no-ops.
+if (process.env.ADZUNA_APP_ID && process.env.ADZUNA_API_KEY) {
+  const { refreshJobCache } = require("./controllers/jobController");
+  refreshJobCache();
+  setInterval(refreshJobCache, 24 * 60 * 60 * 1000);
+}
 
 // Start Server
 const PORT = process.env.PORT || 5000;

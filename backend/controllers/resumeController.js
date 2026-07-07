@@ -20,10 +20,7 @@ const { GoogleGenerativeAI } = require('@google/generative-ai');
 const compileResume = async (req, res) => {
     try {
         const { code } = req.body;
-        if (!code) {
-            return res.status(400).json({ message: "No LaTeX code provided" });
-        }
-        
+      
         // Normalize line endings to UNIX format, as texlive.net is highly sensitive to Windows \r\n
         const cleanCode = code.replace(/\r\n/g, '\n');
 
@@ -205,12 +202,8 @@ const Resume = require("../models/Resume");
  */
 const saveResume = async (req, res) => {
     try {
-        const { title, latexCode, resumeId } = req.body;
+        
         const userId = req.user._id || req.user.id;
-
-        if (!title || !latexCode) {
-            return res.status(400).json({ success: false, message: "Title and LaTeX code are required." });
-        }
 
         let resume;
         if (resumeId) {

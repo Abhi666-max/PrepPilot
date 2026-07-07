@@ -8,6 +8,7 @@ import {
   Bot,
   BrainCircuit,
   Briefcase,
+  BriefcaseBusiness,
   Code2,
   Target,
   Settings,
@@ -26,6 +27,7 @@ import {
   BookMarked,
   CalendarDays,
   ScrollText,
+  Grid3x3,
 } from "lucide-react";
 
 const Sidebar = () => {
@@ -58,6 +60,19 @@ const Sidebar = () => {
           title: "Cognitive Builder",
           path: "/aptitude",
           icon: BrainCircuit,
+        },
+      ],
+    },
+    {
+      id: "cognitive-skills",
+      title: "Cognitive Skills",
+      isHeader: true,
+      items: [
+        {
+          id: "cognitive-games",
+          title: "Cognitive Games",
+          path: "/cognitive-games",
+          icon: Grid3x3,
         },
       ],
     },
@@ -96,6 +111,19 @@ const Sidebar = () => {
           title: "Interview Experiences",
           path: "/interview-experiences",
           icon: MessageSquare,
+        },
+      ],
+    },
+    {
+      id: "jobs",
+      title: "Jobs",
+      isHeader: true,
+      items: [
+        {
+          id: "jobs-for-you",
+          title: "Jobs for You",
+          path: "/jobs",
+          icon: BriefcaseBusiness,
         },
       ],
     },
@@ -185,7 +213,7 @@ const Sidebar = () => {
   ];
 
   const handleServiceClick = (item) => {
-    if (item.title === "Cognitive Builder" && !user) {
+    if ((item.title === "Cognitive Builder" || item.title === "Cognitive Games") && !user) {
       setShowLoginModal(true);
     } else {
       navigate(item.path);

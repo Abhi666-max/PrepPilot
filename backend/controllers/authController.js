@@ -36,6 +36,15 @@ const registerUser = async (req, res) => {
     try {
         const { name, email, password, profileImageUrl } = req.body;
         
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[A-Za-z]{2,}$/;
+
+        if (!emailRegex.test(email)) {
+           return res.status(400).json({
+           success: false,
+           message: "Please enter a valid email address.",
+        });
+        }
+
         const { valid, errors } = validatePassword(password);
         if (!valid) {
             return res.status(400).json({ success: false, message: errors[0] });
@@ -45,10 +54,6 @@ const registerUser = async (req, res) => {
         if (userExists) {
             return res.status(400).json({ success: false, message: "A user with this email already exists." });
         }
-
-        // hash password
-        const salt = await bcrypt.genSalt(10);
-        const hashedPassword = await bcrypt.hash(password, salt);
 
         // Split name into first and last names for defaults
         const nameParts = name.trim().split(/\s+/);
@@ -62,7 +67,7 @@ const registerUser = async (req, res) => {
         const user = await User.create({
             name,
             email,
-            password: hashedPassword,
+            password: password,
             profileImageUrl,
             firstName,
             lastName,
@@ -82,14 +87,13 @@ const registerUser = async (req, res) => {
         const accessToken = generateAccessToken(user._id);
         const refreshToken = generateRefreshToken(user._id);
 
-        user.refreshTokenHash = hashToken(refreshToken);
+        user.refreshTokenHash = await bcrypt.hash(refreshToken, REFRESH_TOKEN_SALT_ROUNDS);
         user.refreshTokenExpiresAt = new Date(Date.now() + REFRESH_TOKEN_MAX_AGE_MS);
         await user.save();
 
         return res.status(201).json({
             success: true,
             message: "Account created successfully. You can now log in.",
-            token: accessToken,
             accessToken,
             refreshToken,
             _id: user._id,
@@ -117,7 +121,7 @@ const loginUser = async (req, res) => {
         }
 
         // Verify password against stored hash
-        const isMatch = await bcrypt.compare(password, user.password);
+        const isMatch = await user.isValidPassword(password);
         if (!isMatch) {
             return res.status(401).json({ success: false, message: "Invalid email or password provided." });
         }
@@ -133,7 +137,7 @@ const loginUser = async (req, res) => {
         const accessToken = generateAccessToken(user._id);
         const refreshToken = generateRefreshToken(user._id);
 
-        user.refreshTokenHash = hashToken(refreshToken);
+        user.refreshTokenHash = await bcrypt.hash(refreshToken, REFRESH_TOKEN_SALT_ROUNDS);
         user.refreshTokenExpiresAt = new Date(Date.now() + REFRESH_TOKEN_MAX_AGE_MS);
         await user.save();
 
@@ -143,12 +147,12 @@ const loginUser = async (req, res) => {
             name: user.name,
             email: user.email,
             profileImageUrl: user.profileImageUrl,
-            token: accessToken,
             accessToken,
             refreshToken,
         });
     } catch (error) {
-        res.status(500).json({ success: false, message: "Internal server error occurred", error: error.message });
+        console.log(error)
+        res.status(500).json({ success: false, message: "Internal server error occurred", error });
     }
 };
 
@@ -201,7 +205,6 @@ const refreshToken = async (req, res) => {
         res.json({
             success: true,
             message: "Token refreshed successfully.",
-            token: accessToken,
             accessToken,
             refreshToken: rotatedRefreshToken,
         });
@@ -460,14 +463,13 @@ const changePassword = async (req, res) => {
         }
 
         // Compare original password
-        const isMatch = await bcrypt.compare(originalPassword, user.password);
+        const isMatch = await user.isValidPassword(originalPassword);
         if (!isMatch) {
             return res.status(400).json({ success: false, message: "Incorrect original password" });
         }
 
         // Hash new password
-        const salt = await bcrypt.genSalt(10);
-        user.password = await bcrypt.hash(newPassword, salt);
+        user.password = newPassword;
         await user.save();
 
         res.json({ success: true, message: "Password updated successfully" });

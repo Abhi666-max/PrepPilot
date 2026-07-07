@@ -126,7 +126,7 @@ Before getting started, ensure you have the following installed:
 #### 1️⃣ Clone the Repository
 
 ```bash
-git clone https://github.com/yourusername/PrepPilot.git
+git clone https://github.com/Canopus-Labs/PrepPilot.git
 cd PrepPilot
 ```
 
@@ -537,11 +537,9 @@ POST   /api/ai/evaluate         - Evaluate user answer
 ### Question Endpoints
 
 ```
-GET    /api/questions           - Get all questions
-GET    /api/questions/:id       - Get single question
-POST   /api/questions           - Create question (admin)
-PUT    /api/questions/:id       - Update question (admin)
-DELETE /api/questions/:id       - Delete question (admin)
+POST   /api/question/add        - Add questions to a session
+POST   /api/question/:id/pin    - Pin or unpin a question
+POST   /api/question/:id/note   - Update note for a question
 ```
 
 ### Resume Endpoints

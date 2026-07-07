@@ -20,6 +20,7 @@ import ProgressTrackerDashboard from "./pages/Home/ProgressTrackerDashboard";
 import InterviewPrep from "./pages/InterviewPrep/InterviewPrep";
 import AIHelper from "./components/AIHepler";
 import PracticePage from "./pages/InterviewPrep/components/PracticePage";
+import CognitiveGamesPage from "./pages/CognitiveGames/CognitiveGamesPage";
 import { useContext } from "react";
 import { UserContext } from "./context/userContext";
 import MainLayout from "./components/Layouts/MainLayout";
@@ -34,6 +35,7 @@ import RepositoryHive from "./pages/OpenSource/RepositoryHive";
 import OSSBlog from "./pages/OpenSource/OSSBlog";
 import OpenSourceEvents from "./pages/OpenSource/OpenSourceEvents";
 import NotesBooks from "./pages/NotesBooks/NotesBooks";
+import JobsForYou from "./pages/Jobs/JobsForYou";
 import HelpSupport from "./pages/Support/HelpSupport";
 import Settings from "./pages/Settings/Settings";
 import NotFound from "./pages/NotFound";
@@ -168,6 +170,16 @@ const App = () => {
                       <ProtectedRoute>
                         <PageTransition>
                           <PracticePage />
+                        </PageTransition>
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/cognitive-games"
+                    element={
+                      <ProtectedRoute>
+                        <PageTransition>
+                          <CognitiveGamesPage />
                         </PageTransition>
                       </ProtectedRoute>
                     }
@@ -310,6 +322,16 @@ const App = () => {
                       <ProtectedRoute>
                         <PageTransition>
                           <Settings />
+                        </PageTransition>
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/jobs"
+                    element={
+                      <ProtectedRoute>
+                        <PageTransition>
+                          <JobsForYou />
                         </PageTransition>
                       </ProtectedRoute>
                     }

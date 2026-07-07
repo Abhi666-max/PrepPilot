@@ -65,11 +65,11 @@ const SignUp = ({ setCurrentPage }) => {
         password,
         profileImageUrl: profileImageUrl || "",
       });
-
+      
       if (response.data.success) {
-        const { token } = response.data;
-        if (token) {
-          sessionStorage.setItem("token", token);
+        const { accessToken } = response.data;
+        if (accessToken) {
+          sessionStorage.setItem("token", accessToken);
           updateUser(response.data);
           navigate("/dashboard");
         }
@@ -171,11 +171,21 @@ const SignUp = ({ setCurrentPage }) => {
           />
 
           <Input
-            value={email}
-            onChange={({ target }) => setEmail(target.value)}
-            label="Email Address"
-            placeholder="your@email.com"
-            type="text"
+             value={email}
+             onChange={({ target }) => {
+             const value = target.value;
+                   setEmail(value);
+
+             if (
+                 error === "Please enter a valid email address" &&
+                 validateEmail(value)
+                ) {
+              setError("");
+             }
+             }}
+               label="Email Address"
+               placeholder="your@email.com"
+               type="email"
           />
 
           <Input
