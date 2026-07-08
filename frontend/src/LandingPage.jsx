@@ -1,5 +1,5 @@
 import ProfileInfoCard from "./components/Cards/ProfileinfoCard";
-import React, { useContext, useState, useEffect } from "react";
+import React, { useContext, useState, useEffect, useRef } from "react";
 import { APP_FEATURES, STATS, HOW_IT_WORKS_STEPS } from "./utils/data";
 import { useNavigate } from "react-router-dom";
 import { Link, something } from "react-router-dom";
@@ -15,9 +15,15 @@ import Modal from "./components/Loader/Modal";
 import Login from "./pages/Auth/Login";
 import SignUp from "./pages/Auth/SignUp";
 import { UserContext } from "./context/userContext";
-import { motion, AnimatePresence } from "framer-motion";
+import {
+  motion,
+  AnimatePresence,
+  useMotionValue,
+  useSpring,
+  useTransform,
+} from "framer-motion";
 import ServicesMarquee from "./components/ServicesMarquee";
-import { Star, ChevronLeft, ChevronRight } from "lucide-react"; // Import icons for testimonials
+import { Star, ChevronLeft, ChevronRight, ChevronDown, Check } from "lucide-react"; // Import icons for testimonials + hero
 import TermsandConditions from "./pages/Terms/TermsandConditions";   // ← Add this
 
 
@@ -35,6 +41,129 @@ const FadeIn = ({ children, delay = 0, className = "" }) => (
     {children}
   </motion.div>
 );
+
+/* ─────────────────────────────────────────────
+   HERO — Typewriter headline
+───────────────────────────────────────────── */
+const TYPEWRITER_WORDS = [
+  "AI Interview Prep",
+  "System Design",
+  "DSA Practice",
+  "Behavioral Questions",
+  "Mock Interviews",
+  "Resume Reviews",
+];
+
+const TypewriterText = () => {
+  const [wordIndex, setWordIndex] = useState(0);
+  const [subIndex, setSubIndex] = useState(0);
+  const [deleting, setDeleting] = useState(false);
+  const [blink, setBlink] = useState(true);
+
+  // Typing / deleting engine
+  useEffect(() => {
+    const currentWord = TYPEWRITER_WORDS[wordIndex];
+
+    if (!deleting && subIndex === currentWord.length) {
+      const pause = setTimeout(() => setDeleting(true), 1500);
+      return () => clearTimeout(pause);
+    }
+
+    if (deleting && subIndex === 0) {
+      const pause = setTimeout(() => {
+        setDeleting(false);
+        setWordIndex((prev) => (prev + 1) % TYPEWRITER_WORDS.length);
+      }, 300);
+      return () => clearTimeout(pause);
+    }
+
+    const speed = deleting ? 32 : 62;
+    const timeout = setTimeout(() => {
+      setSubIndex((prev) => prev + (deleting ? -1 : 1));
+    }, speed);
+
+    return () => clearTimeout(timeout);
+  }, [subIndex, deleting, wordIndex]);
+
+  // Cursor blink
+  useEffect(() => {
+    const blinkInterval = setInterval(() => setBlink((v) => !v), 480);
+    return () => clearInterval(blinkInterval);
+  }, []);
+
+  return (
+    <span className="relative inline-flex items-baseline whitespace-nowrap text-transparent bg-clip-text bg-gradient-to-r from-violet-400 via-purple-400 to-blue-400">
+      {TYPEWRITER_WORDS[wordIndex].substring(0, subIndex) || "\u00A0"}
+      <span
+        aria-hidden="true"
+        className={`ml-1 inline-block w-[3px] sm:w-[4px] h-[0.85em] bg-violet-400 rounded-full transition-opacity duration-100 ${
+          blink ? "opacity-100" : "opacity-0"
+        }`}
+      />
+    </span>
+  );
+};
+
+/* ─────────────────────────────────────────────
+   HERO — floating glass card (parallax + float)
+───────────────────────────────────────────── */
+const FloatingCard = ({ label, style, depth, delay, floatDuration, mouseX, mouseY }) => {
+  const px = useTransform(mouseX, [-0.5, 0.5], [-depth, depth]);
+  const py = useTransform(mouseY, [-0.5, 0.5], [-depth * 0.6, depth * 0.6]);
+
+  return (
+    <motion.div
+      className="hidden lg:block absolute z-20"
+      style={{ ...style, x: px, y: py }}
+    >
+      <motion.div
+        className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-white/10 bg-white/[0.05] backdrop-blur-md shadow-lg shadow-black/30"
+        initial={{ opacity: 0, y: 16, scale: 0.92 }}
+        animate={{
+          opacity: 1,
+          scale: 1,
+          y: [0, -12, 0],
+          rotate: [0, 1.6, -1.6, 0],
+        }}
+        transition={{
+          opacity: { duration: 0.7, delay },
+          scale: { duration: 0.7, delay },
+          y: { duration: floatDuration, repeat: Infinity, ease: "easeInOut", delay: delay + 0.5 },
+          rotate: { duration: floatDuration + 2, repeat: Infinity, ease: "easeInOut", delay: delay + 0.5 },
+        }}
+      >
+        <span className="w-5 h-5 rounded-full bg-violet-500/20 border border-violet-400/40 flex items-center justify-center flex-shrink-0">
+          <Check size={11} className="text-violet-300" />
+        </span>
+        <span className="text-xs font-medium text-gray-200 whitespace-nowrap">
+          {label}
+        </span>
+      </motion.div>
+    </motion.div>
+  );
+};
+
+const FLOATING_CARDS = [
+  { label: "React Interview", style: { top: "10%", left: "2%" }, depth: 14, delay: 0.1, floatDuration: 5 },
+  { label: "System Design", style: { top: "68%", left: "6%" }, depth: 22, delay: 0.5, floatDuration: 6.5 },
+  { label: "DSA", style: { top: "16%", left: "88%" }, depth: 18, delay: 0.9, floatDuration: 5.5 },
+  { label: "Resume Review", style: { top: "70%", left: "84%" }, depth: 12, delay: 1.3, floatDuration: 6 },
+  { label: "AI Feedback", style: { top: "40%", left: "92%" }, depth: 26, delay: 0.3, floatDuration: 7 },
+];
+
+/* ─────────────────────────────────────────────
+   HERO — ambient floating particles
+───────────────────────────────────────────── */
+const PARTICLES = [
+  { top: "18%", left: "12%", size: 4, duration: 6, delay: 0 },
+  { top: "30%", left: "82%", size: 3, duration: 7.5, delay: 0.6 },
+  { top: "55%", left: "20%", size: 5, duration: 8, delay: 1.1 },
+  { top: "62%", left: "70%", size: 3, duration: 6.5, delay: 1.6 },
+  { top: "12%", left: "55%", size: 3, duration: 7, delay: 0.3 },
+  { top: "78%", left: "45%", size: 4, duration: 9, delay: 2 },
+  { top: "45%", left: "8%", size: 3, duration: 6.8, delay: 1.4 },
+  { top: "24%", left: "70%", size: 4, duration: 8.4, delay: 0.9 },
+];
 
 /* ─────────────────────────────────────────────
    How It Works – enhanced accordion step card
@@ -247,6 +376,29 @@ const LandingPage = () => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
 
+  // Hero parallax
+  const heroRef = useRef(null);
+  const statsRef = useRef(null);
+  const mouseX = useMotionValue(0);
+  const mouseY = useMotionValue(0);
+  const springX = useSpring(mouseX, { stiffness: 60, damping: 20, mass: 0.4 });
+  const springY = useSpring(mouseY, { stiffness: 60, damping: 20, mass: 0.4 });
+  const blobX1 = useTransform(springX, [-0.5, 0.5], [-20, 20]);
+  const blobY1 = useTransform(springY, [-0.5, 0.5], [-20, 20]);
+  const blobX2 = useTransform(springX, [-0.5, 0.5], [16, -16]);
+  const blobY2 = useTransform(springY, [-0.5, 0.5], [16, -16]);
+
+  const handleHeroMouseMove = (e) => {
+    if (!heroRef.current) return;
+    const rect = heroRef.current.getBoundingClientRect();
+    mouseX.set((e.clientX - rect.left) / rect.width - 0.5);
+    mouseY.set((e.clientY - rect.top) / rect.height - 0.5);
+  };
+
+  const scrollToStats = () => {
+    statsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
+
   useEffect(() => {
     const handleResize = () => {
       if (window.innerWidth < 640) {
@@ -443,62 +595,204 @@ const LandingPage = () => {
         </header>
 
         {/* ─────────────────────────────────
-            HERO – centered, full width
+            HERO – premium AI-SaaS motion hero
         ───────────────────────────────── */}
-        <section className="dot-grid-bg relative pt-24 pb-20 px-4 text-center">
-          <FadeIn>
-            {/* Badge pill */}
-            <div className="inline-flex items-center gap-2 mb-6 text-xs font-semibold text-violet-300 bg-violet-500/10 border border-violet-500/25 px-4 py-1.5 rounded-full">
-              <LuSparkles className="text-violet-400" />
-              AI Powered Interview Mastery
-            </div>
-          </FadeIn>
+        <section
+          ref={heroRef}
+          onMouseMove={handleHeroMouseMove}
+          className="dot-grid-bg relative pt-28 pb-24 px-4 text-center overflow-hidden min-h-[92vh] flex flex-col items-center justify-center"
+        >
+          {/* Parallax gradient blobs */}
+          <motion.div
+            className="pointer-events-none absolute top-[-160px] left-1/2 -translate-x-1/2 w-[680px] h-[680px] bg-violet-600/15 rounded-full blur-[120px]"
+            style={{ x: blobX1, y: blobY1 }}
+            animate={{ scale: [1, 1.08, 1], opacity: [0.55, 0.85, 0.55] }}
+            transition={{ duration: 9, repeat: Infinity, ease: "easeInOut" }}
+          />
+          <motion.div
+            className="pointer-events-none absolute bottom-[-140px] right-[-110px] w-[440px] h-[440px] bg-blue-600/12 rounded-full blur-[110px]"
+            style={{ x: blobX2, y: blobY2 }}
+            animate={{ scale: [1, 1.12, 1], opacity: [0.45, 0.75, 0.45] }}
+            transition={{ duration: 11, repeat: Infinity, ease: "easeInOut", delay: 1.4 }}
+          />
 
-          <FadeIn delay={0.08}>
-            <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold text-white leading-[1.1] tracking-tight max-w-4xl mx-auto mb-6">
-              Crack Every Interview with{" "}
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-violet-400 via-purple-400 to-blue-400">
-                AI‑Powered
-              </span>{" "}
-              Learning
-            </h1>
-          </FadeIn>
+          {/* Pulsing radial glow behind headline */}
+          <motion.div
+            className="pointer-events-none absolute top-[38%] left-1/2 -translate-x-1/2 -translate-y-1/2 w-[920px] max-w-[95vw] h-[480px] rounded-full"
+            style={{
+              background:
+                "radial-gradient(closest-side, rgba(139,92,246,0.55), transparent 72%)",
+            }}
+            animate={{ opacity: [0.08, 0.18, 0.08] }}
+            transition={{ duration: 7, repeat: Infinity, ease: "easeInOut" }}
+          />
 
-          <FadeIn delay={0.15}>
-            <p className="text-base sm:text-lg text-gray-400 max-w-2xl mx-auto mb-10 leading-relaxed">
-              Get role-specific questions, expand answers when you need them,
-              dive deeper into concepts, and organize everything your way. From
-              preparation to mastery—your ultimate interview toolkit is here.
-            </p>
-          </FadeIn>
+          {/* Subtle floating particles */}
+          <div className="pointer-events-none absolute inset-0 hidden sm:block">
+            {PARTICLES.map((p, i) => (
+              <motion.span
+                key={i}
+                className="absolute rounded-full bg-violet-300/40"
+                style={{ top: p.top, left: p.left, width: p.size, height: p.size }}
+                animate={{ y: [0, -18, 0], opacity: [0.15, 0.55, 0.15] }}
+                transition={{
+                  duration: p.duration,
+                  repeat: Infinity,
+                  ease: "easeInOut",
+                  delay: p.delay,
+                }}
+              />
+            ))}
+          </div>
 
-          <FadeIn delay={0.22}>
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-              <button
-                onClick={handleCTA}
-                className="cta-glow flex items-center gap-2 bg-gradient-to-r from-violet-600 to-blue-600 hover:from-violet-500 hover:to-blue-500 text-white font-semibold px-8 py-3.5 rounded-full text-base transition-all duration-200"
-              >
-                <span className="font-mono text-xs text-violet-200">&gt;_</span>
-                Get Started — It's Free
-              </button>
-              <button
-                onClick={() => navigate("/ai-helper")}
-                className="flex items-center gap-2 text-violet-300 border border-violet-500/40 hover:border-violet-400 hover:bg-violet-500/10 font-semibold px-8 py-3.5 rounded-full text-base transition-all duration-200"
-              >
-                <LuSparkles className="text-sm" />
-                Try AI Assistance
-              </button>
-            </div>
-            <p className="mt-4 text-xs text-gray-500">
-              No signup required for AI Assistance ✦ Free to explore
-            </p>
-          </FadeIn>
+          {/* Floating AI feature cards */}
+          {FLOATING_CARDS.map((card) => (
+            <FloatingCard key={card.label} {...card} mouseX={springX} mouseY={springY} />
+          ))}
+
+          {/* Foreground content */}
+          <div className="relative z-10 max-w-4xl mx-auto">
+            <FadeIn>
+              {/* Badge with shimmer sweep */}
+              <div className="relative inline-flex items-center gap-2 mb-6 text-xs font-semibold text-violet-300 bg-violet-500/10 border border-violet-500/25 px-4 py-1.5 rounded-full overflow-hidden">
+                <LuSparkles className="text-violet-400 relative z-10" />
+                <span className="relative z-10">AI Powered Interview Mastery</span>
+                <motion.span
+                  className="absolute inset-y-0 left-0 w-1/3 bg-gradient-to-r from-transparent via-white/25 to-transparent"
+                  animate={{ x: ["-120%", "220%"] }}
+                  transition={{ duration: 2.6, repeat: Infinity, ease: "easeInOut", repeatDelay: 1.4 }}
+                />
+              </div>
+            </FadeIn>
+
+            <FadeIn delay={0.1}>
+              <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold text-white leading-[1.1] tracking-tight max-w-4xl mx-auto mb-6">
+                Master Every Technical Interview with{" "}
+                <br className="hidden sm:block" />
+                <TypewriterText />
+              </h1>
+            </FadeIn>
+
+            <FadeIn delay={0.2}>
+              <p className="text-base sm:text-lg text-gray-400 max-w-2xl mx-auto mb-10 leading-relaxed">
+                Your personal AI interview coach — role-specific questions,
+                instant explanations, and a prep plan that adapts to you.
+                From first practice question to offer letter.
+              </p>
+            </FadeIn>
+
+            <FadeIn delay={0.3}>
+              <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+                {/* Primary CTA */}
+                <motion.button
+                  onClick={handleCTA}
+                  whileHover={{ scale: 1.05, y: -3 }}
+                  whileTap={{ scale: 0.97 }}
+                  transition={{ type: "spring", stiffness: 400, damping: 18 }}
+                  className="cta-glow group relative flex items-center gap-2 text-white font-semibold px-8 py-3.5 rounded-full text-base overflow-hidden"
+                  style={{
+                    backgroundImage:
+                      "linear-gradient(135deg, #7c3aed, #4f46e5, #7c3aed)",
+                    backgroundSize: "200% 200%",
+                    boxShadow: "0 0 20px rgba(124,58,237,0.35)",
+                  }}
+                >
+                  <motion.span
+                    className="absolute inset-0"
+                    style={{
+                      backgroundImage:
+                        "linear-gradient(135deg, #8b5cf6, #6366f1, #8b5cf6)",
+                      backgroundSize: "200% 200%",
+                    }}
+                    animate={{ backgroundPosition: ["0% 50%", "100% 50%", "0% 50%"] }}
+                    transition={{ duration: 6, repeat: Infinity, ease: "linear" }}
+                  />
+                  <span className="relative z-10 font-mono text-xs text-violet-200">
+                    &gt;_
+                  </span>
+                  <span className="relative z-10">Get Started — It's Free</span>
+                  <motion.span
+                    className="relative z-10 inline-flex"
+                    animate={{ x: [0, 4, 0] }}
+                    transition={{ duration: 1.6, repeat: Infinity, ease: "easeInOut" }}
+                  >
+                    <LuArrowRight />
+                  </motion.span>
+                </motion.button>
+
+                {/* Secondary glass CTA */}
+                <motion.button
+                  onClick={() => navigate("/ai-helper")}
+                  whileHover={{ scale: 1.03, y: -2 }}
+                  whileTap={{ scale: 0.97 }}
+                  className="group relative flex items-center gap-2 text-violet-300 font-semibold px-8 py-3.5 rounded-full text-base backdrop-blur-md bg-white/[0.04] overflow-hidden"
+                  style={{ border: "1px solid rgba(139,92,246,0.35)" }}
+                >
+                  <motion.span
+                    className="absolute inset-0 rounded-full"
+                    style={{ border: "1px solid rgba(139,92,246,0.6)" }}
+                    animate={{ opacity: [0.2, 0.7, 0.2] }}
+                    transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+                  />
+                  <motion.span
+                    className="relative z-10 inline-flex"
+                    whileHover={{ rotate: 18 }}
+                    transition={{ type: "spring", stiffness: 300, damping: 12 }}
+                  >
+                    <LuSparkles className="text-sm" />
+                  </motion.span>
+                  <span className="relative z-10">Try AI Assistance</span>
+                </motion.button>
+              </div>
+
+              <p className="mt-4 text-xs text-gray-500">
+                No signup required for AI Assistance ✦ Free to explore
+              </p>
+            </FadeIn>
+
+            {/* Trust strip */}
+            <FadeIn delay={0.4}>
+              <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-5">
+                <div className="flex items-center gap-1.5">
+                  <StarRating count={5} />
+                </div>
+                <span className="hidden sm:block w-px h-4 bg-white/10" />
+                <span className="text-sm text-gray-400 font-medium">
+                  Trusted by 10,000+ developers
+                </span>
+                <span className="hidden sm:block w-px h-4 bg-white/10" />
+                <span className="text-sm text-gray-400 font-medium">
+                  Built for FAANG &amp; startup interviews
+                </span>
+              </div>
+            </FadeIn>
+          </div>
+
+          {/* Scroll indicator */}
+          <motion.button
+            onClick={scrollToStats}
+            aria-label="Scroll to explore"
+            className="absolute bottom-6 left-1/2 -translate-x-1/2 z-10 flex flex-col items-center gap-1.5 text-gray-500 hover:text-violet-300 transition-colors"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.9, duration: 0.6 }}
+          >
+            <span className="text-[10px] font-semibold tracking-widest uppercase">
+              Scroll
+            </span>
+            <motion.span
+              animate={{ y: [0, 6, 0] }}
+              transition={{ duration: 1.8, repeat: Infinity, ease: "easeInOut" }}
+            >
+              <ChevronDown size={18} />
+            </motion.span>
+          </motion.button>
         </section>
 
         {/* ─────────────────────────────────
             STATS STRIP
         ───────────────────────────────── */}
-        <section className="relative border-y border-white/6 py-14 px-4">
+        <section ref={statsRef} className="relative border-y border-white/6 py-14 px-4">
           <div className="max-w-5xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-8">
             {STATS.map((stat, i) => (
               <FadeIn key={stat.id} delay={i * 0.07} className="text-center">
