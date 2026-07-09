@@ -42,28 +42,65 @@ const UserSheetProgress = require('../models/UserSheetProgress');
  * 200 {"success": true, "progress": {"sheetId":"arrays","percentage":60}}
  */
 exports.saveProgress = async (req, res) => {
-  const { sheetId, followed, completedTopics, percentage } = req.body;
+  const {
+    sheetId,
+    followed,
+    completedTopics,
+    percentage,
+  } = req.body;
+
   const userId = req.user._id;
 
   try {
-    let progress = await UserSheetProgress.findOne({ userId, sheetId });
-    if (progress) {
-      progress.followed = followed;
-      progress.completedTopics = completedTopics;
-      progress.percentage = percentage;
-      await progress.save();
-    } else {
-      progress = await UserSheetProgress.create({
+    const progress = await UserSheetProgress.findOneAndUpdate(
+      {
         userId,
         sheetId,
-        followed,
-        completedTopics,
-        percentage,
-      });
-    }
-    res.json({ success: true, progress });
+      },
+      {
+        $set: {
+          followed,
+          completedTopics,
+          percentage,
+        },
+      },
+      {
+        upsert: true,
+        new: true,
+        setDefaultsOnInsert: true,
+      }
+    );
+
+    res.json({
+      success: true,
+      progress,
+    });
   } catch (err) {
-    res.status(500).json({ success: false, error: err.message });
+    // Rare duplicate-key race during concurrent upserts.
+    // Retry once by reading the existing document.
+    if (err.code === 11000) {
+      try {
+        const progress = await UserSheetProgress.findOne({
+          userId,
+          sheetId,
+        });
+
+        return res.json({
+          success: true,
+          progress,
+        });
+      } catch (retryErr) {
+        return res.status(500).json({
+          success: false,
+          error: retryErr.message,
+        });
+      }
+    }
+
+    res.status(500).json({
+      success: false,
+      error: err.message,
+    });
   }
 };
 
