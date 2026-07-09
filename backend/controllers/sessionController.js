@@ -25,51 +25,55 @@ const MAX_SESSIONS = Number(process.env.MAX_SESSIONS) || 50;;
  * @example
  * 201 {"success": true, "session": {"_id":"...","role":"Backend Engineer",...}}
  */
+const mongoose = require("mongoose");
+
 exports.createSession = async (req, res) => {
-  try {
-  const {role , experience , topicsToFocus , description , question }= req.body;
-    const userId = req.user._id || req.user.id;
+    const mongoSession = await mongoose.startSession();
 
-    // Count existing sessions for this user
-    const sessionCount = await Session.countDocuments({
-      user: userId,
-    });
+    try {
+        await mongoSession.withTransaction(async () => {
+            const userId = req.user._id;
 
-    // Check session limit
-    if (sessionCount >= MAX_SESSIONS) {
-      return res.status(403).json({
-        success: false,
-        message: `Session limit reached. You already have ${sessionCount} sessions. Please delete old sessions before creating new ones.`,
-        currentCount: sessionCount,
-        maxLimit: MAX_SESSIONS,
-      });
-    }
+            const sessionCount = await Session.countDocuments({
+                user: userId,
+            }).session(mongoSession);
 
-  const session = await Session.create({
-    user : userId,
-    role,
-    experience,
-    topicsToFocus,
-    description
-  });
-    const questionDocs = await Promise.all(
-        (question || []).map(async (q)=>{
-            const questionDoc = await Question.create({
-                session:session._id,
-                question:q.question,
-                answer:q.answer,
+            if (sessionCount >= MAX_SESSIONS) {
+                throw new Error("SESSION_LIMIT_REACHED");
+            }
+
+            const createdSession = await Session.create(
+                [
+                    {
+                        user: userId,
+                        ...req.body,
+                    },
+                ],
+                {
+                    session: mongoSession,
+                }
+            );
+
+            res.status(201).json({
+                success: true,
+                session: createdSession[0],
             });
-            return questionDoc._id;
-        })
-    );
+        });
+    } catch (err) {
+        if (err.message === "SESSION_LIMIT_REACHED") {
+            return res.status(400).json({
+                success: false,
+                error: `Maximum of ${MAX_SESSIONS} sessions reached.`,
+            });
+        }
 
-    session.questions=questionDocs;
-    await session.save();
-    res.status(201).json({success:true, session});
-  } catch (error) {
-    console.error("CreateSession error:", error);
-    res.status(500).json({ success: false, message: "Server Error" });
-  }
+        return res.status(500).json({
+            success: false,
+            error: err.message,
+        });
+    } finally {
+        await mongoSession.endSession();
+    }
 };
 
 /**
