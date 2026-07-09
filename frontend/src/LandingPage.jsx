@@ -387,7 +387,7 @@ const LandingPage = () => {
                 <button
                   key={item.route}
                   onClick={() => handleNav(item.route)}
-                  className="cursor-pointer px-3.5 py-2 text-sm text-gray-300 hover:text-white transition-colors duration-150 whitespace-nowrap"
+                  className="px-3.5 py-2 text-sm text-gray-300 hover:text-white transition-colors duration-150 whitespace-nowrap"
                 >
                   {item.label}
                 </button>
@@ -404,7 +404,7 @@ const LandingPage = () => {
                   {/* Login – outlined dark button (like opensox "Contribute") */}
                   <button
                     onClick={() => setOpenAuthModal(true)}
-                    className="cursor-pointer hidden sm:flex items-center gap-1.5 text-sm text-gray-200 hover:text-white font-medium px-4 py-2 rounded-xl transition-all duration-150"
+                    className="hidden sm:flex items-center gap-1.5 text-sm text-gray-200 hover:text-white font-medium px-4 py-2 rounded-xl transition-all duration-150"
                     style={{
                       background: "rgba(255,255,255,0.06)",
                       border: "1px solid rgba(255,255,255,0.12)",
@@ -416,7 +416,7 @@ const LandingPage = () => {
                   {/* Get Started – solid violet pill */}
                   <button
                     onClick={handleCTA}
-                    className="cursor-pointer flex items-center gap-2 text-white text-sm font-semibold px-5 py-2 rounded-xl transition-all duration-150"
+                    className="flex items-center gap-2 text-white text-sm font-semibold px-5 py-2 rounded-xl transition-all duration-150"
                     style={{
                       background:
                         "linear-gradient(135deg, #7c3aed 0%, #4f46e5 100%)",
@@ -476,14 +476,14 @@ const LandingPage = () => {
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
               <button
                 onClick={handleCTA}
-                className="cursor-pointer cta-glow flex items-center gap-2 bg-gradient-to-r from-violet-600 to-blue-600 hover:from-violet-500 hover:to-blue-500 text-white font-semibold px-8 py-3.5 rounded-full text-base transition-all duration-200"
+                className="cta-glow flex items-center gap-2 bg-gradient-to-r from-violet-600 to-blue-600 hover:from-violet-500 hover:to-blue-500 text-white font-semibold px-8 py-3.5 rounded-full text-base transition-all duration-200"
               >
                 <span className="font-mono text-xs text-violet-200">&gt;_</span>
                 Get Started — It's Free
               </button>
               <button
                 onClick={() => navigate("/ai-helper")}
-                className="cursor-pointer flex items-center gap-2 text-violet-300 border border-violet-500/40 hover:border-violet-400 hover:bg-violet-500/10 font-semibold px-8 py-3.5 rounded-full text-base transition-all duration-200"
+                className="flex items-center gap-2 text-violet-300 border border-violet-500/40 hover:border-violet-400 hover:bg-violet-500/10 font-semibold px-8 py-3.5 rounded-full text-base transition-all duration-200"
               >
                 <LuSparkles className="text-sm" />
                 Try AI Assistance
@@ -795,7 +795,7 @@ const LandingPage = () => {
                                 boxShadow: "0 0 30px rgba(139,92,246,0.6)",
                               }}
                               whileTap={{ scale: 0.95 }}
-                              className="cursor-pointer flex items-center gap-2 text-white font-bold px-6 py-3 rounded-xl text-sm transition-all mt-2"
+                              className="flex items-center gap-2 text-white font-bold px-6 py-3 rounded-xl text-sm transition-all mt-2"
                               style={{
                                 background:
                                   "linear-gradient(135deg, rgba(139,92,246,0.6) 0%, rgba(79,70,229,0.6) 100%)",
@@ -922,7 +922,7 @@ const LandingPage = () => {
             </p>
             <button
               onClick={handleCTA}
-              className="cursor-pointer cta-glow inline-flex items-center gap-3 bg-gradient-to-r from-violet-600 to-blue-600 hover:from-violet-500 hover:to-blue-500 text-white font-bold px-10 py-4 rounded-full text-base transition-all duration-200"
+              className="cta-glow inline-flex items-center gap-3 bg-gradient-to-r from-violet-600 to-blue-600 hover:from-violet-500 hover:to-blue-500 text-white font-bold px-10 py-4 rounded-full text-base transition-all duration-200"
             >
               <span className="font-mono text-xs text-violet-200">&gt;_</span>
               Start Preparing for Free
@@ -1079,7 +1079,7 @@ const LandingPage = () => {
         hideHeader
       >
         <div>
-          <div className={`${currentPage === "login" ? "block" : "hidden"} cursor-pointer`}>
+          <div className={currentPage === "login" ? "block" : "hidden"}>
             <Login
               setCurrentPage={setCurrentPage}
               onLoginSuccess={() => {
