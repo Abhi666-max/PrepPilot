@@ -33,6 +33,10 @@ const CreateSessionForm = () => {
       setError("Please fill all the required fields.");
       return;
     }
+    if (Number(experience) < 0) {
+  setError("Years of experience cannot be negative.");
+  return;
+}
     
     const topicsArray = topicsToFocus.split(",")
     .map((t) => t.trim())
@@ -142,6 +146,7 @@ const CreateSessionForm = () => {
                   ) : (
                     <input
                       type={field.type}
+                      min={field.type === "number" ? 0 : undefined}
                       value={formData[field.id]}
                       onChange={({ target }) => handleChange(field.id, target.value)}
                       placeholder={field.placeholder}
