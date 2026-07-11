@@ -990,8 +990,6 @@ const LandingPage = () => {
   const [activeStep, setActiveStep] = useState(1);
   const [showScrollTop, setShowScrollTop] = useState(false);
 
-  const [visibleCards, setVisibleCards] = useState(3);
-  const [currentIndex, setCurrentIndex] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
 
   // Hero parallax
@@ -1015,56 +1013,6 @@ const LandingPage = () => {
 
   const scrollToStats = () => {
     statsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
-  };
-
-  useEffect(() => {
-    const handleResize = () => {
-      if (window.innerWidth < 640) {
-        setVisibleCards(1);
-      } else if (window.innerWidth < 1024) {
-        setVisibleCards(2);
-      } else {
-        setVisibleCards(3);
-      }
-    };
-    handleResize();
-    window.addEventListener("resize", handleResize);
-    return () => window.removeEventListener("resize", handleResize);
-  }, []);
-
-  useEffect(() => {
-    const maxIndex = Math.max(0, TESTIMONIALS.length - visibleCards);
-    if (currentIndex > maxIndex) {
-      setCurrentIndex(maxIndex);
-    }
-  }, [visibleCards, currentIndex]);
-
-  useEffect(() => {
-    if (isPaused) return;
-    const interval = setInterval(() => {
-      setCurrentIndex((prevIndex) => {
-        const nextIndex = prevIndex + 1;
-        const maxIndex = TESTIMONIALS.length - visibleCards;
-        return nextIndex > maxIndex ? 0 : nextIndex;
-      });
-    }, 4000);
-    return () => clearInterval(interval);
-  }, [visibleCards, isPaused]);
-
-  const handlePrev = () => {
-    setCurrentIndex((prevIndex) => {
-      const nextIndex = prevIndex - 1;
-      const maxIndex = TESTIMONIALS.length - visibleCards;
-      return nextIndex < 0 ? maxIndex : nextIndex;
-    });
-  };
-
-  const handleNext = () => {
-    setCurrentIndex((prevIndex) => {
-      const nextIndex = prevIndex + 1;
-      const maxIndex = TESTIMONIALS.length - visibleCards;
-      return nextIndex > maxIndex ? 0 : nextIndex;
-    });
   };
 
   const handleCTA = () => {
@@ -1601,114 +1549,35 @@ const LandingPage = () => {
         {/* ─────────────────────────────────
             TESTIMONIALS – auto-scrolling carousel
         ───────────────────────────────── */}
-        <section className="py-24 px-4 border-t border-white/6 relative overflow-hidden">
-          <div className="max-w-6xl mx-auto relative z-10">
-            <FadeIn className="text-center mb-16">
-              <span className="text-xs font-semibold tracking-widest text-violet-400 uppercase mb-3 block">
-                What Our Users Say
-              </span>
-              <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-white">
-                Trusted by{" "}
-                <span className="text-transparent bg-clip-text bg-gradient-to-r from-violet-400 to-blue-400">
-                  Thousands of Developers
-                </span>
-              </h2>
-            </FadeIn>
+       {/* Testimonials Scroller */}
+<div
+  className="relative overflow-hidden py-8"
+  onMouseEnter={() => setIsPaused(true)}
+  onMouseLeave={() => setIsPaused(false)}
+>
+  {/* Left Fade */}
+  <div className="absolute inset-y-0 left-0 w-24 bg-gradient-to-r from-gray-950 to-transparent z-10 pointer-events-none" />
 
-            {/* Testimonials Scroller */}
-            <div
-              className="relative overflow-hidden py-8"
-              onMouseEnter={() => setIsPaused(true)}
-              onMouseLeave={() => setIsPaused(false)}
-            >
-              {/* Fading overlays */}
-              <div className="absolute inset-y-0 left-0 w-24 bg-gradient-to-r from-gray-950 to-transparent z-10 pointer-events-none" />
-              <div className="absolute inset-y-0 right-0 w-24 bg-gradient-to-l from-gray-950 to-transparent z-10 pointer-events-none" />
+  {/* Right Fade */}
+  <div className="absolute inset-y-0 right-0 w-24 bg-gradient-to-l from-gray-950 to-transparent z-10 pointer-events-none" />
 
-              {/* Slider Track Wrapper */}
-              <div className="overflow-hidden">
-                <div
-                  className="flex transition-transform duration-500 ease-in-out"
-                  style={{
-                    transform: `translateX(-${currentIndex * (100 / visibleCards)}%)`,
-                  }}
-                >
-                  {TESTIMONIALS.map((testimonial) => (
-                    <div
-                      key={testimonial.id}
-                      className="flex-none p-3"
-                      style={{ width: `${100 / visibleCards}%` }}
-                    >
-                      <TestimonialCard testimonial={testimonial} />
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* Navigation Arrows and Dot Indicators */}
-              <div className="flex justify-between items-center mt-8 px-4">
-                <button
-                  onClick={handlePrev}
-                  className="p-3 rounded-full bg-white/5 border border-white/10 hover:bg-white/10 hover:border-violet-500/50 text-white transition-all cursor-pointer focus:outline-none focus:ring-2 focus:ring-violet-500"
-                  aria-label="Previous testimonial"
-                >
-                  <ChevronLeft size={20} />
-                </button>
-
-                {/* Dots indicators */}
-                <div className="flex space-x-2">
-                  {Array.from({ length: TESTIMONIALS.length - visibleCards + 1 }).map((_, idx) => (
-                    <button
-                      key={idx}
-                      onClick={() => setCurrentIndex(idx)}
-                      className={`h-2.5 rounded-full transition-all duration-300 cursor-pointer ${
-                        currentIndex === idx ? "w-6 bg-violet-500 shadow-lg shadow-violet-500/50" : "w-2.5 bg-white/20 hover:bg-white/40"
-                      }`}
-                      aria-label={`Go to slide ${idx + 1}`}
-                    />
-                  ))}
-                </div>
-
-                <button
-                  onClick={handleNext}
-                  className="p-3 rounded-full bg-white/5 border border-white/10 hover:bg-white/10 hover:border-violet-500/50 text-white transition-all cursor-pointer focus:outline-none focus:ring-2 focus:ring-violet-500"
-                  aria-label="Next testimonial"
-                >
-                  <ChevronRight size={20} />
-                </button>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* ─────────────────────────────────
-            CTA FOOTER BANNER
-        ───────────────────────────────── */}
-        <section className="py-28 px-4 relative overflow-hidden border-t border-white/6">
-          <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
-            <div className="w-[600px] h-[300px] bg-violet-600/15 rounded-full blur-[100px]" />
-          </div>
-          <FadeIn className="relative text-center max-w-2xl mx-auto">
-            <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-white mb-5 leading-tight">
-              Ready to Ace Your{" "}
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-violet-400 to-blue-400">
-                Next Interview?
-              </span>
-            </h2>
-            <p className="text-gray-400 mb-10 text-base sm:text-lg">
-              Join thousands of learners who have transformed their interview
-              preparation with PrepPilot AI.
-            </p>
-            <button
-              onClick={handleCTA}
-              className="cta-glow inline-flex items-center gap-3 bg-gradient-to-r from-violet-600 to-blue-600 hover:from-violet-500 hover:to-blue-500 text-white font-bold px-10 py-4 rounded-full text-base transition-all duration-200"
-            >
-              <span className="font-mono text-xs text-violet-200">&gt;_</span>
-              Start Preparing for Free
-              <LuArrowRight />
-            </button>
-          </FadeIn>
-        </section>
+  <div className="overflow-hidden">
+    <div
+      className={`flex gap-6 w-max ${
+        isPaused ? "animate-marquee paused" : "animate-marquee"
+      }`}
+    >
+      {[...TESTIMONIALS, ...TESTIMONIALS].map((testimonial, index) => (
+        <div
+          key={`${testimonial.id}-${index}`}
+          className="w-[360px] flex-shrink-0"
+        >
+          <TestimonialCard testimonial={testimonial} />
+        </div>
+      ))}
+    </div>
+  </div>
+</div>
 
         {/* ─────────────────────────────────
             FOOTER
